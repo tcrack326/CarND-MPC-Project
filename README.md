@@ -3,6 +3,30 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+## Reflection
+
+My model for the MPC Controller is based on the provided one by Udacity in the MPC quiz: https://github.com/udacity/CarND-MPC-Quizzes/blob/master/mpc_to_line/solution/MPC.cpp.
+
+The predictive functions are provided by these formulas:
+`
+x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+v_[t+1] = v[t] + a[t] * dt
+cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+`
+Some important differences are that I needed to convert map coordinates to vehicle coordinates to calculate the adjustments appropriately and I included a term for latency in the formulas like so:
+
+`
+x_[t+1] = v * cos(current_steering_angle) * latency;
+y_[t+1] = -v * sin(current_steering_angle) * latency;
+psi_[t+1] = -(v * current_steering_angle * latency) / Lf;
+v_[t+1] = v + current_acceleration * latency;
+`
+
+I played around a lot with the parameters for N, dt, and max. speed. Playing with these I found that dt = 0.05 worked well with varying N's and then I was able to reduce N such that the processing time to get the shorter path worked well for higher speeds. If N was too large then the prediction took much time and the path planning faltered.  I got N to 9 and it may be able to go 8 or maybe 7 but that's really pushing the limits with any speeds over 50. At 9 I was able to achieve a max. speed of 90mph! I was really proud of myself of achieving a max. speed of 90, but of course this is without any loss of friction with the tires and lateral forces to cause slippage with the tires so it's not exactly realistic. Rewarding nonetheless!
+
 ## Dependencies
 
 * cmake >= 3.5
@@ -19,7 +43,7 @@ Self-Driving Car Engineer Nanodegree Program
   * Run either `install-mac.sh` or `install-ubuntu.sh`.
   * If you install from source, checkout to commit `e94b6e1`, i.e.
     ```
-    git clone https://github.com/uWebSockets/uWebSockets 
+    git clone https://github.com/uWebSockets/uWebSockets
     cd uWebSockets
     git checkout e94b6e1
     ```
@@ -31,7 +55,7 @@ Self-Driving Car Engineer Nanodegree Program
   * Mac: `brew install ipopt`
   * Linux
     * You will need a version of Ipopt 3.12.1 or higher. The version available through `apt-get` is 3.11.x. If you can get that version to work great but if not there's a script `install_ipopt.sh` that will install Ipopt. You just need to download the source from the Ipopt [releases page](https://www.coin-or.org/download/source/Ipopt/) or the [Github releases](https://github.com/coin-or/Ipopt/releases) page.
-    * Then call `install_ipopt.sh` with the source directory as the first argument, ex: `bash install_ipopt.sh Ipopt-3.12.1`. 
+    * Then call `install_ipopt.sh` with the source directory as the first argument, ex: `bash install_ipopt.sh Ipopt-3.12.1`.
   * Windows: TODO. If you can use the Linux subsystem and follow the Linux instructions.
 * [CppAD](https://www.coin-or.org/CppAD/)
   * Mac: `brew install cppad`
